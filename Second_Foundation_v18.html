@@ -571,41 +571,36 @@ h1,h2,h3,p{margin-top:0}
 .p5-content{position:absolute;left:52px;right:52px;top:110px;bottom:46px;transform:none;max-height:none;display:flex;flex-direction:column;gap:12px}
 .p5-main{flex:1;min-height:0;display:grid;grid-template-columns:1.08fr .92fr;gap:20px;align-items:stretch}
 .p5-panel{min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);overflow:hidden}
-.p5-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;border-bottom:1px solid #e8ebf0;background:#f7f9fc}
-.p5-panel-hd .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);font-weight:700}
-.p5-panel-hd .hint{font-size:11.5px;color:#7a8190;font-weight:500}
-.p5-panel-bd{flex:1;min-height:0;padding:14px 14px 12px;display:flex;flex-direction:column}
+.p5-panel-bd{flex:1;min-height:0;padding:16px 14px 14px;display:flex;flex-direction:column}
 .p5-stack-wrap{flex:1;display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:stretch;min-height:0}
 .p5-rail{display:grid;grid-template-rows:1.05fr 1fr 1.15fr 1fr 1fr auto;gap:5px;padding-top:2px}
 .p5-rail span{display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:#8aa8cc;font-weight:650;text-align:right;line-height:1.2;border-right:2px solid #d7e2f2}
-.p5-rail span.on{color:var(--blue);border-right-color:var(--blue)}
 .p5-rail span.blank{border-right-color:transparent}
 .p5-pyramid{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%}
-.p5-tier{position:relative;width:100%;text-align:center;color:var(--navy);padding:9px 18px 8px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;clip-path:polygon(var(--in) 0, calc(100% - var(--in)) 0, 100% 100%, 0 100%);background:linear-gradient(180deg,#f4f8ff 0%,#e4eefc 100%);border:0;box-shadow:inset 0 0 0 1px rgba(20,92,196,.16)}
-.p5-tier.t5{--in:20%;min-height:52px;background:linear-gradient(180deg,#0b2e6d 0%,#145cc4 100%);color:#fff;box-shadow:0 8px 18px rgba(11,46,109,.18)}
-.p5-tier.t4{--in:14%;background:linear-gradient(180deg,#eaf2ff,#d5e5fb)}
-.p5-tier.t3{--in:10%;min-height:54px;background:linear-gradient(180deg,#dceaff,#c2d8f8);box-shadow:inset 0 0 0 1.5px rgba(20,92,196,.35),0 6px 14px rgba(20,92,196,.1)}
-.p5-tier.t2{--in:6%;background:linear-gradient(180deg,#f7f9fc,#e9eef6)}
-.p5-tier.t1{--in:2%;background:linear-gradient(180deg,#fafbfc,#eef1f5);color:#3d4554}
-.p5-tier .lvl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;opacity:.75;font-weight:700;margin-bottom:2px}
+.p5-tier{position:relative;width:100%;text-align:center;color:var(--navy);padding:9px 18px 8px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;clip-path:polygon(var(--in) 0, calc(100% - var(--in)) 0, 100% 100%, 0 100%);border:0;box-shadow:inset 0 0 0 1px rgba(20,92,196,.14)}
+/* Bottom → top: light → deep blue (monotonic) */
+.p5-tier.t1{--in:2%;background:linear-gradient(180deg,#f3f7fd,#e8eef8);color:#3d4554}
+.p5-tier.t2{--in:6%;background:linear-gradient(180deg,#e6eefb,#d5e2f5)}
+.p5-tier.t3{--in:10%;min-height:54px;background:linear-gradient(180deg,#d0dff5,#b9cff0)}
+.p5-tier.t4{--in:14%;background:linear-gradient(180deg,#b4cbeb,#95b6e0);color:#0b2e6d}
+.p5-tier.t5{--in:20%;min-height:52px;background:linear-gradient(180deg,#3d6fbf,#0b2e6d);color:#fff;box-shadow:0 8px 18px rgba(11,46,109,.16)}
+.p5-tier .lvl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;opacity:.7;font-weight:700;margin-bottom:2px}
 .p5-tier.t5 .lvl{color:#9fc4ff;opacity:1}
 .p5-tier .name{font-size:13px;line-height:1.2;font-weight:700}
-.p5-tier .desc{font-size:11px;line-height:1.3;margin-top:2px;font-weight:500;opacity:.85}
+.p5-tier .desc{font-size:11px;line-height:1.3;margin-top:2px;font-weight:500;opacity:.88}
 .p5-tier .tags{font-family:var(--mono);font-size:10px;line-height:1.2;margin-top:3px;font-weight:600;color:#5b7fad}
 .p5-tier.t5 .tags{color:#c5d4ea}
-.p5-tier.t1 .tags,.p5-tier.t2 .tags{color:#8a919e}
+.p5-tier.t1 .tags{color:#8a919e}
 .p5-base{margin-top:8px;width:100%;border:1px dashed #c5d0e0;border-radius:4px;background:#f7f9fc;padding:8px 10px;text-align:center}
 .p5-base .lbl{font-size:11.5px;line-height:1.3;color:#5c6370;font-weight:650}
 .p5-base .icons{margin-top:5px;display:flex;justify-content:center;gap:12px;opacity:.85}
 .p5-loop{display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:10px;padding:7px 10px;border-radius:4px;background:#f3f7fd;border:1px solid #d5e2f4;font-family:var(--mono);font-size:11.5px;color:#0e54b5;font-weight:650;letter-spacing:.01em;white-space:nowrap}
 .p5-loop span{color:#8aa8cc;padding:0 1px}
 .p5-loop .cyc{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid #bfd0e8;color:#145cc4;font-size:11px;margin-left:2px}
-.p5-points{flex:1;display:flex;flex-direction:column;gap:0;min-height:0;border:1px solid #e8ebf0;border-radius:4px;overflow:hidden}
+.p5-points{flex:1;display:flex;flex-direction:column;gap:0;min-height:0;border:1px solid #e8ebf0;border-radius:4px;overflow:hidden;background:#fff}
 .p5-point{flex:1;display:grid;grid-template-columns:42px 1fr;gap:0;align-items:stretch;background:#fff;border-bottom:1px solid #eef0f4;min-height:0}
 .p5-point:last-child{border-bottom:0}
 .p5-point .n{display:flex;align-items:center;justify-content:center;background:#f7f9fc;border-right:1px solid #eef0f4;font-family:var(--mono);font-size:13px;color:#8aa8cc;font-weight:700}
-.p5-point.focus{background:#f5f9ff}
-.p5-point.focus .n{background:var(--navy);color:#fff;border-right-color:var(--navy)}
 .p5-point .body{padding:8px 12px;display:flex;flex-direction:column;justify-content:center}
 .p5-point h3{font-size:13px;line-height:1.25;margin:0 0 3px;color:var(--navy);font-weight:700}
 .p5-point .txt{font-size:11.5px;line-height:1.35;color:#5c6370;font-weight:450}
@@ -743,13 +738,12 @@ h1,h2,h3,p{margin-top:0}
 <div class="p5-main">
 
 <div class="p5-panel">
-<div class="p5-panel-hd"><div class="k">Capability Stack</div><div class="hint">竞争位点：多数停留在单层</div></div>
 <div class="p5-panel-bd">
 <div class="p5-stack-wrap">
 <div class="p5-rail" aria-hidden="true">
-<span class="on">Closed Loop</span>
+<span>Closed Loop</span>
 <span>Improvement</span>
-<span class="on">Experience</span>
+<span>Experience</span>
 <span>Persistence</span>
 <span>Execution</span>
 <span class="blank"></span>
@@ -801,7 +795,6 @@ h1,h2,h3,p{margin-top:0}
 </div>
 
 <div class="p5-panel">
-<div class="p5-panel-hd"><div class="k">Why Second Foundation</div><div class="hint">从单点能力到闭环优势</div></div>
 <div class="p5-panel-bd">
 <div class="p5-loop">Observe <span>→</span> Remember <span>→</span> Validate <span>→</span> Improve <span>→</span> Deploy <span class="cyc">↺</span></div>
 <div class="p5-points">
@@ -819,7 +812,7 @@ h1,h2,h3,p{margin-top:0}
 <div class="txt">把成功 / 失败轨迹提炼为 Skill、Workflow、Eval 与 Reward。</div>
 </div>
 </div>
-<div class="p5-point focus">
+<div class="p5-point">
 <div class="n">03</div>
 <div class="body">
 <h3>Verified Experience / 可信经验层</h3>
