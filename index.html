@@ -245,16 +245,24 @@ h1,h2,h3,p{margin-top:0}
 
 
 /* Founder team placeholder page */
-.team-intro{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 2px}
-.team-intro .body{font-size:17px;color:#3a4250;margin:0}
-.team-intro .small{font-size:13px;color:#7a8190;text-align:right;max-width:360px}
-.team-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:14px}
-.team-card{display:grid;grid-template-columns:92px 1fr;gap:16px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px 17px;min-height:145px;box-shadow:var(--shadow)}
-.team-avatar{width:82px;height:96px;border:1px dashed #9faabd;background:var(--soft);display:grid;place-items:center;text-align:center;color:#7a8190;font-family:var(--mono);font-size:11px;line-height:1.35;border-radius:2px}
-.team-card h3{font-size:22px;margin:0 0 5px;color:var(--navy)}
-.team-role{font-size:15px;font-weight:700;color:#145cc4;margin-bottom:5px}
-.team-lines{font-size:13.5px;line-height:1.45;color:#5c6370}
+.team-intro{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px;gap:24px}
+.team-intro .body{font-size:15px;color:#3a4250;margin:0;max-width:760px}
+.team-intro .small{font-size:12px;color:#7a8190;text-align:right;max-width:300px;flex-shrink:0}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:stretch}
+.team-card{display:flex;flex-direction:column;align-items:stretch;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 14px;min-height:0;box-shadow:var(--shadow)}
+.team-avatar{width:min(100%,228px);aspect-ratio:3/4;height:auto;margin:0 auto 10px;border:1px solid var(--line);background:var(--soft);overflow:hidden;border-radius:2px;flex-shrink:0}
+.team-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.team-card h3{font-size:20px;margin:0 0 3px;color:var(--navy);letter-spacing:-.01em;line-height:1.25;text-align:center}
+.team-card h3 .team-title{font-size:13px;font-weight:500;color:var(--navy);margin-left:5px;vertical-align:baseline;letter-spacing:0}
+.team-name-cn{font-size:14px;color:#7a8190;font-weight:500;margin:0 0 6px;text-align:center}
+.team-role{font-size:14px;font-weight:700;color:#145cc4;margin-bottom:8px;line-height:1.4;text-align:center}
+.team-lines{font-size:13.5px;line-height:1.45;color:#5c6370;flex:1;text-align:center}
 .team-lines b{color:#314150;font-weight:650}
+.team-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center}
+.team-tags span{font-size:12px;line-height:1.2;padding:4px 8px;background:var(--soft);border:1px solid var(--line);color:#0e54b5;font-weight:600;border-radius:2px}
+.slide.team-slide .content{top:98px;transform:none;max-height:calc(100% - 130px)}
+.slide.team-slide > h2{font-size:22px}
+.slide.team-slide .page{font-size:13px}
 
 /* Appendix: representative prior work — aligned with deck card language */
 .appendix-lead{font-size:15px;line-height:1.45;color:#2a3140;font-weight:500;margin:0 0 14px;max-width:1120px}
@@ -1078,20 +1086,41 @@ body:has(#p8:target) .slide:not(:has(#p8)){display:none}
 </section>
 -->
 </section>
-<section class="slide">
+<section class="slide team-slide">
 <div class="page">6 / 10</div><h2>团队</h2>
 <div class="content">
-<div class="team-intro">
-<div class="body">先建立团队可信度，再展示 Memory 与 RSI 代表成果，形成信任闭环。</div>
-<div class="small">占位版本｜姓名、照片、履历、代表成果与职责将在下一轮补齐</div>
-</div>
 <div class="team-grid">
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>团队成员 01</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 教育、任职与创业经历待补<br/><b>能力</b> 研究方向、产品能力与代表成果待补</div></div></div>
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>团队成员 02</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 教育、任职与创业经历待补<br/><b>能力</b> 研究方向、产品能力与代表成果待补</div></div></div>
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>团队成员 03</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 教育、任职与创业经历待补<br/><b>能力</b> 研究方向、产品能力与代表成果待补</div></div></div>
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>团队成员 04</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 教育、任职与创业经历待补<br/><b>能力</b> 研究方向、产品能力与代表成果待补</div></div></div>
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>团队成员 05</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 教育、任职与创业经历待补<br/><b>能力</b> 研究方向、产品能力与代表成果待补</div></div></div>
-<div class="team-card"><div class="team-avatar">PHOTO<br/>待补</div><div><h3>顾问 / 核心合作成员</h3><div class="team-role">角色 / 职位待补</div><div class="team-lines"><b>背景</b> 学术、产业与生态资源待补<br/><b>职责</b> 技术、行业或商业化支持待补</div></div></div>
+<div class="team-card">
+<div class="team-avatar"><img src="assets/portraits/sikuan-yan.png" alt="严思宽 Sikuan Yan"/></div>
+<h3>严思宽</h3>
+<div class="team-name-cn">Sikuan Yan</div>
+<div class="team-role">慕尼黑大学博士生<br/>慕尼黑机器学习中心研究员</div>
+<div class="team-lines">慕尼黑大学硕士<br/>慕尼黑工业大学学士</div>
+<div class="team-tags"><span>智能体记忆</span><span>智能体 RL</span><span>多智能体</span></div>
+</div>
+<div class="team-card">
+<div class="team-avatar"><img src="assets/portraits/yilun-liu.png" alt="刘逸伦 Yilun Liu"/></div>
+<h3>刘逸伦</h3>
+<div class="team-name-cn">Yilun Liu</div>
+<div class="team-role">慕尼黑大学博士生<br/>慕尼黑机器学习中心研究员</div>
+<div class="team-lines">慕尼黑工业大学硕士<br/>西安交通大学少年班学士</div>
+<div class="team-tags"><span>递归改进</span><span>架构</span><span>可解释性</span></div>
+</div>
+<div class="team-card">
+<div class="team-avatar"><img src="assets/portraits/yunpu-ma.png" alt="马鋆溥博士 Yunpu Ma"/></div>
+<h3>马鋆溥<span class="team-title">博士</span></h3>
+<div class="team-name-cn">Yunpu Ma</div>
+<div class="team-role">慕尼黑大学讲师<br/>慕尼黑机器学习中心研究员</div>
+<div class="team-lines">慕尼黑大学博士<br/>慕尼黑大学实验室领导人</div>
+<div class="team-tags"><span>智能体 AI</span><span>记忆</span><span>递归改进</span></div>
+</div>
+<div class="team-card">
+<div class="team-avatar"><img src="assets/portraits/volker-tresp.png" alt="Volker Tresp 教授"/></div>
+<h3>Volker Tresp<span class="team-title">博士，教授</span></h3>
+<div class="team-role">慕尼黑大学教授<br/>欧洲学习与智能系统实验室主任<br/>慕尼黑机器学习中心首席研究员</div>
+<div class="team-lines">慕尼黑大学研究组负责人<br/>研究顾问与协同</div>
+<div class="team-tags"><span>数据库</span><span>数据挖掘</span><span>AI</span></div>
+</div>
 </div>
 </div><div class="brand">Second Foundation</div>
 </section>
