@@ -1,7 +1,6 @@
 /**
- * Simplified MGM theory sims for the BP deck.
- * Auto-cycles random d0/ρ; no control sliders.
- * Seed default 42.
+ * Interactive Figures 4–5 — live Monte Carlo in a 3-column theory block.
+ * Auto-cycles like the evolution tree: hold, then refresh with random d0/ρ.
  */
 (() => {
   const root = document.getElementById('simPanel');
@@ -9,28 +8,34 @@
 
   const evoCanvas = document.getElementById('simEvo');
   const histCanvas = document.getElementById('simHist');
-  const paramEl = document.getElementById('simParams');
-  if (!evoCanvas || !histCanvas) return;
+  const d0Range = document.getElementById('simD0');
+  const rhoRange = document.getElementById('simRho');
+  const d0Val = document.getElementById('simD0Val');
+  const rhoVal = document.getElementById('simRhoVal');
+  if (!evoCanvas || !histCanvas || !d0Range || !rhoRange) return;
 
   const evoCtx = evoCanvas.getContext('2d');
   const histCtx = histCanvas.getContext('2d');
 
-  const D0_STEPS = [10, 15, 20, 25, 30, 40, 50];
-  const RHO_AUTO = [1.2, 1.3, 1.5, 1.8, 2.0, 2.5, 3.0];
+  const D0_STEPS = [10, 15, 20, 25, 30, 40, 50, 60, 80];
+  const RHO_STEPS = [1.0, 1.1, 1.2, 1.3, 1.5, 1.8, 2.0, 2.5, 3.0];
+  const RHO_AUTO = RHO_STEPS.filter((r) => r >= 1.2);
   const METHODS = ['DGM', 'HGM', 'MGM'];
   const COLORS = { DGM: '#E74C3C', HGM: '#2980B9', MGM: '#27AE60' };
-  const N_SEEDS = 28;
-  const N_PTS = 64;
+  const N_SEEDS = 36;
+  const N_PTS = 80;
   const BUDGET = 500;
   const BASE_SEED = 42;
+  /** Pause on finished curves before auto-refresh (ms), cf. evo-trees holdMs. */
   const HOLD_MS = 3200;
-  const PLAY_MS = 2600;
+  const PLAY_MS = 2800;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let worker = null;
   let runToken = 0;
   let holdTimer = 0;
+  let userPinned = false;
   let cycleRng = mulberry32(BASE_SEED);
   let state = emptyState(20, 2.0);
 
@@ -57,8 +62,21 @@
     };
   }
 
-  function syncParams() {
-    if (paramEl) paramEl.textContent = `初始距离（难度）${state.d0} · 比较信号优势 ${state.rho.toFixed(1)}`;
+  function css(name, fallback) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  function syncLabels() {
+    if (d0Val) d0Val.textContent = String(state.d0);
+    if (rhoVal) rhoVal.textContent = state.rho.toFixed(1);
+  }
+
+  function setControls(d0, rho) {
+    const di = D0_STEPS.indexOf(d0);
+    const ri = RHO_STEPS.indexOf(rho);
+    d0Range.value = String(di >= 0 ? di : D0_STEPS.indexOf(20));
+    rhoRange.value = String(ri >= 0 ? ri : RHO_STEPS.indexOf(2.0));
+    syncLabels();
   }
 
   function resizeCanvases() {
@@ -117,12 +135,23 @@
     return { mu, lo, hi, n };
   }
 
-  function margins(dpr) {
-    return { t: 10 * dpr, r: 4 * dpr, b: 4 * dpr, l: 2 * dpr };
-  }
+  /** Match .polyglot-chart .tick { font-size: 10px }. */
+  const POLY_TICK_PX = 10;
 
   function tickFont(dpr) {
-    return `${8 * dpr}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    const mono = css('--mono', 'IBM Plex Mono, monospace');
+    let px = POLY_TICK_PX;
+    const sample = document.querySelector('#polySvg .tick, .polyglot-chart .tick');
+    if (sample) {
+      const parsed = parseFloat(getComputedStyle(sample).fontSize);
+      if (parsed > 0) px = parsed;
+    }
+    return `${px * dpr}px ${mono}`;
+  }
+
+  /** Polyglot-like inset: tiny margins, ticks inside the plot. */
+  function margins(dpr) {
+    return { t: 12 * dpr, r: 4 * dpr, b: 4 * dpr, l: 2 * dpr };
   }
 
   function drawEvo() {
@@ -133,6 +162,7 @@
     const dpr = W / cssW;
     ctx.clearRect(0, 0, W, H);
 
+    const dim = css('--dim', '#6B7A72');
     const M = margins(dpr);
     const plotW = W - M.l - M.r;
     const plotH = H - M.t - M.b;
@@ -208,7 +238,7 @@
       ctx.stroke();
     }
 
-    ctx.fillStyle = '#6B7A72';
+    ctx.fillStyle = dim;
     ctx.font = tickFont(dpr);
     ctx.textAlign = 'left';
     ctx.fillText(String(d0), M.l + 6 * dpr, M.t + 9 * dpr);
@@ -225,6 +255,7 @@
     const dpr = W / cssW;
     ctx.clearRect(0, 0, W, H);
 
+    const dim = css('--dim', '#6B7A72');
     const M = margins(dpr);
     const plotW = W - M.l - M.r;
     const plotH = H - M.t - M.b;
@@ -286,7 +317,7 @@
       ctx.setLineDash([]);
     }
 
-    ctx.fillStyle = '#6B7A72';
+    ctx.fillStyle = dim;
     ctx.font = tickFont(dpr);
     ctx.textAlign = 'left';
     ctx.fillText('0', M.l + 6 * dpr, M.t + plotH - 4 * dpr);
@@ -320,11 +351,11 @@
 
   function scheduleRefresh() {
     clearHold();
-    if (reduceMotion) return;
+    if (userPinned || reduceMotion) return;
     holdTimer = setTimeout(() => {
       holdTimer = 0;
       const next = pickRandomParams();
-      startRun(next.d0, next.rho);
+      startRun(next.d0, next.rho, { fromAuto: true });
     }, HOLD_MS);
   }
 
@@ -357,8 +388,7 @@
 
   function ensureWorker() {
     if (worker) return worker;
-    const blob = new Blob(["/**\r\n * Monte Carlo worker — port of simulation.py (DGM / HGM / MGM).\r\n * Posts progressive seed results so the UI can monitor curves + distributions live.\r\n */\r\n(() => {\r\n  const METHODS = ['DGM', 'HGM', 'MGM'];\r\n\r\n  function mulberry32(a) {\r\n    return function () {\r\n      let t = (a += 0x6d2b79f5);\r\n      t = Math.imul(t ^ (t >>> 15), t | 1);\r\n      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);\r\n      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\r\n    };\r\n  }\r\n\r\n  function rngInt(rng, n) {\r\n    return Math.floor(rng() * n);\r\n  }\r\n\r\n  function choiceNoReplace(rng, n, k) {\r\n    const idx = new Uint16Array(n);\r\n    for (let i = 0; i < n; i++) idx[i] = i;\r\n    for (let i = 0; i < k; i++) {\r\n      const j = i + rngInt(rng, n - i);\r\n      const tmp = idx[i];\r\n      idx[i] = idx[j];\r\n      idx[j] = tmp;\r\n    }\r\n    return idx.subarray(0, k);\r\n  }\r\n\r\n  function makeInitialState(L, d0, rng) {\r\n    const state = new Uint8Array(L);\r\n    state.fill(1);\r\n    const bad = choiceNoReplace(rng, L, d0);\r\n    for (let i = 0; i < bad.length; i++) state[bad[i]] = 0;\r\n    return state;\r\n  }\r\n\r\n  function makeTaskPool(N, L, k, rng) {\r\n    const pool = new Array(N);\r\n    for (let i = 0; i < N; i++) pool[i] = Uint16Array.from(choiceNoReplace(rng, L, k));\r\n    return pool;\r\n  }\r\n\r\n  function evalTask(state, locs) {\r\n    for (let i = 0; i < locs.length; i++) if (state[locs[i]] === 0) return 0;\r\n    return 1;\r\n  }\r\n\r\n  function dOf(state) {\r\n    let d = 0;\r\n    for (let i = 0; i < state.length; i++) if (state[i] === 0) d++;\r\n    return d;\r\n  }\r\n\r\n  function applyEdit(state, fixProb, breakProb, rng) {\r\n    const next = state.slice();\r\n    for (let i = 0; i < next.length; i++) {\r\n      if (next[i] === 0) {\r\n        if (rng() < fixProb) next[i] = 1;\r\n      } else if (rng() < breakProb) {\r\n        next[i] = 0;\r\n      }\r\n    }\r\n    return next;\r\n  }\r\n\r\n  function interpolate(history, totalBudget, nPts) {\r\n    const out = new Float32Array(nPts);\r\n    let h = 0;\r\n    const d0 = history[0][1];\r\n    for (let i = 0; i < nPts; i++) {\r\n      const cp = (totalBudget * i) / (nPts - 1);\r\n      while (h + 1 < history.length && history[h + 1][0] <= cp) h++;\r\n      out[i] = history[h] ? history[h][1] : d0;\r\n    }\r\n    return out;\r\n  }\r\n\r\n  function runDgm(p, rng) {\r\n    const taskPool = makeTaskPool(p.N_tasks, p.L, p.k, rng);\r\n    const init = makeInitialState(p.L, p.d0, rng);\r\n    let cost = 0;\r\n    const history = [[0, dOf(init)]];\r\n    let population = Array.from({ length: p.dgm_pop_size }, () => ({\r\n      state: init.slice(),\r\n      rewards: [],\r\n    }));\r\n\r\n    while (cost < p.total_budget) {\r\n      outer: for (let i = 0; i < population.length; i++) {\r\n        for (let e = 0; e < p.dgm_n_eval; e++) {\r\n          const tid = rngInt(rng, p.N_tasks);\r\n          population[i].rewards.push(evalTask(population[i].state, taskPool[tid]));\r\n          cost += p.c_task;\r\n          if (cost >= p.total_budget) break outer;\r\n        }\r\n      }\r\n      let best = Infinity;\r\n      for (const ind of population) best = Math.min(best, dOf(ind.state));\r\n      history.push([cost, best]);\r\n      if (cost >= p.total_budget) break;\r\n\r\n      const ranked = population.slice().sort((a, b) => {\r\n        const ma = a.rewards.length ? a.rewards.reduce((s, x) => s + x, 0) / a.rewards.length : 0;\r\n        const mb = b.rewards.length ? b.rewards.reduce((s, x) => s + x, 0) / b.rewards.length : 0;\r\n        return mb - ma;\r\n      });\r\n      const nSelect = Math.max(1, Math.floor(p.dgm_pop_size * p.dgm_selection_frac));\r\n      const selected = ranked.slice(0, nSelect);\r\n      const newPop = [{ state: selected[0].state.slice(), rewards: [] }];\r\n      for (const ind of selected) {\r\n        newPop.push({\r\n          state: applyEdit(ind.state, p.fix_prob_CM, p.break_prob_CM, rng),\r\n          rewards: [],\r\n        });\r\n        cost += p.c_edit_CM;\r\n        if (newPop.length >= p.dgm_pop_size || cost >= p.total_budget) break;\r\n      }\r\n      while (newPop.length < p.dgm_pop_size) {\r\n        newPop.push({ state: selected[0].state.slice(), rewards: [] });\r\n      }\r\n      population = newPop.slice(0, p.dgm_pop_size);\r\n      best = Infinity;\r\n      for (const ind of population) best = Math.min(best, dOf(ind.state));\r\n      history.push([cost, best]);\r\n    }\r\n    return interpolate(history, p.total_budget, p.n_checkpoints);\r\n  }\r\n\r\n  function betaMean(s, n) {\r\n    return (s + 1) / (n + 2);\r\n  }\r\n\r\n  function ucb(s, n, total, c) {\r\n    if (n === 0) return Infinity;\r\n    return betaMean(s, n) + c * Math.sqrt(Math.log(Math.max(total, 2)) / n);\r\n  }\r\n\r\n  function shouldEdit(s, n, minEv, maxEv, thresh) {\r\n    if (n >= maxEv) return true;\r\n    if (n < minEv) return false;\r\n    return (n - s) / n > thresh;\r\n  }\r\n\r\n  function chooseStrategyMgm(idx, failedTasks, p, rng) {\r\n    const canRM = failedTasks[idx].size >= p.min_failures_for_RM;\r\n    let canCH = false;\r\n    const nodeFailed = failedTasks[idx];\r\n    if (nodeFailed.size) {\r\n      for (let j = 0; j < failedTasks.length; j++) {\r\n        if (j === idx) continue;\r\n        for (const t of nodeFailed) {\r\n          if (failedTasks[j].has(t)) {\r\n            canCH = true;\r\n            break;\r\n          }\r\n        }\r\n        if (canCH) break;\r\n      }\r\n    }\r\n    if (canRM && rng() < p.prob_RM_given_available) return 'RM';\r\n    if (canCH && rng() < p.prob_CH_given_available) return 'CH';\r\n    return 'CM';\r\n  }\r\n\r\n  function runHgmMgm(p, rng, isMgm) {\r\n    const taskPool = makeTaskPool(p.N_tasks, p.L, p.k, rng);\r\n    const init = makeInitialState(p.L, p.d0, rng);\r\n    let cost = 0;\r\n    const history = [[0, dOf(init)]];\r\n    const states = [init];\r\n    const successes = [0];\r\n    const nEvals = [0];\r\n    const failedTasks = [new Set()];\r\n    const edited = [false];\r\n    const FIX = { CM: p.fix_prob_CM, RM: p.fix_prob_RM, CH: p.fix_prob_CH };\r\n    const BREAK = { CM: p.break_prob_CM, RM: p.break_prob_RM, CH: p.break_prob_CH };\r\n    const COST = { CM: p.c_edit_CM, RM: p.c_edit_RM, CH: p.c_edit_CH };\r\n\r\n    const bestD = () => {\r\n      let b = Infinity;\r\n      for (const s of states) b = Math.min(b, dOf(s));\r\n      return b;\r\n    };\r\n\r\n    let tid = rngInt(rng, p.N_tasks);\r\n    let r = evalTask(states[0], taskPool[tid]);\r\n    successes[0] += r;\r\n    nEvals[0] += 1;\r\n    if (r === 0) failedTasks[0].add(tid);\r\n    cost += p.c_task;\r\n    history.push([cost, bestD()]);\r\n\r\n    while (cost < p.total_budget) {\r\n      let active = [];\r\n      for (let i = 0; i < edited.length; i++) if (!edited[i]) active.push(i);\r\n      if (!active.length) active = states.map((_, i) => i);\r\n\r\n      let totalEv = 0;\r\n      for (const n of nEvals) totalEv += n;\r\n      totalEv = Math.max(1, totalEv);\r\n\r\n      let bestIdx = active[0];\r\n      let bestU = -Infinity;\r\n      for (const i of active) {\r\n        const u = ucb(successes[i], nEvals[i], totalEv, p.ucb_c);\r\n        if (u > bestU) {\r\n          bestU = u;\r\n          bestIdx = i;\r\n        }\r\n      }\r\n      const idx = bestIdx;\r\n\r\n      tid = rngInt(rng, p.N_tasks);\r\n      r = evalTask(states[idx], taskPool[tid]);\r\n      successes[idx] += r;\r\n      nEvals[idx] += 1;\r\n      if (r === 0) failedTasks[idx].add(tid);\r\n      cost += p.c_task;\r\n      history.push([cost, bestD()]);\r\n      if (cost >= p.total_budget) break;\r\n\r\n      if (\r\n        !edited[idx] &&\r\n        shouldEdit(\r\n          successes[idx],\r\n          nEvals[idx],\r\n          p.min_evals_before_edit,\r\n          p.max_evals_per_node,\r\n          p.edit_fail_threshold\r\n        )\r\n      ) {\r\n        const strategy = isMgm ? chooseStrategyMgm(idx, failedTasks, p, rng) : 'CM';\r\n        const newState = applyEdit(states[idx], FIX[strategy], BREAK[strategy], rng);\r\n        cost += COST[strategy];\r\n        edited[idx] = true;\r\n        states.push(newState);\r\n        successes.push(0);\r\n        nEvals.push(0);\r\n        failedTasks.push(new Set());\r\n        edited.push(false);\r\n        history.push([cost, bestD()]);\r\n\r\n        if (cost < p.total_budget) {\r\n          const newIdx = states.length - 1;\r\n          tid = rngInt(rng, p.N_tasks);\r\n          r = evalTask(states[newIdx], taskPool[tid]);\r\n          successes[newIdx] += r;\r\n          nEvals[newIdx] += 1;\r\n          if (r === 0) failedTasks[newIdx].add(tid);\r\n          cost += p.c_task;\r\n          history.push([cost, bestD()]);\r\n        }\r\n      }\r\n    }\r\n    return interpolate(history, p.total_budget, p.n_checkpoints);\r\n  }\r\n\r\n  function defaultParams(overrides) {\r\n    const fixCM = 0.25;\r\n    const rho = overrides.rho ?? 2;\r\n    return {\r\n      L: 100,\r\n      d0: overrides.d0 ?? 20,\r\n      N_tasks: 200,\r\n      k: 5,\r\n      c_task: 1,\r\n      c_edit_CM: 1,\r\n      c_edit_RM: 1,\r\n      c_edit_CH: 1,\r\n      fix_prob_CM: fixCM,\r\n      fix_prob_RM: fixCM * rho,\r\n      fix_prob_CH: fixCM * rho,\r\n      break_prob_CM: 0.05,\r\n      break_prob_RM: 0.05,\r\n      break_prob_CH: 0.05,\r\n      dgm_pop_size: 5,\r\n      dgm_n_eval: 10,\r\n      dgm_selection_frac: 0.4,\r\n      ucb_c: 1,\r\n      min_evals_before_edit: 3,\r\n      max_evals_per_node: 20,\r\n      edit_fail_threshold: 0.5,\r\n      prob_RM_given_available: 0.5,\r\n      prob_CH_given_available: 0.8,\r\n      min_failures_for_RM: 2,\r\n      total_budget: overrides.budget ?? 500,\r\n      n_seeds: overrides.nSeeds ?? 60,\r\n      n_checkpoints: overrides.nCheckpoints ?? 120,\r\n      seed: overrides.seed ?? 42,\r\n      rho,\r\n    };\r\n  }\r\n\r\n  let runId = 0;\r\n\r\n  self.onmessage = (ev) => {\r\n    const msg = ev.data || {};\r\n    if (msg.type !== 'run') return;\r\n    const id = ++runId;\r\n    const p = defaultParams(msg);\r\n    const n = p.n_seeds;\r\n    const nPts = p.n_checkpoints;\r\n    const checkpoints = new Float32Array(nPts);\r\n    for (let i = 0; i < nPts; i++) checkpoints[i] = (p.total_budget * i) / (nPts - 1);\r\n\r\n    self.postMessage({\r\n      type: 'start',\r\n      id,\r\n      d0: p.d0,\r\n      rho: p.rho,\r\n      nSeeds: n,\r\n      budget: p.total_budget,\r\n      checkpoints: Array.from(checkpoints),\r\n    });\r\n\r\n    for (let seed = 0; seed < n; seed++) {\r\n      if (id !== runId) return;\r\n      const traj = {\r\n        DGM: runDgm(p, mulberry32(p.seed + seed * 3 + 1)),\r\n        HGM: runHgmMgm(p, mulberry32(p.seed + seed * 3 + 2), false),\r\n        MGM: runHgmMgm(p, mulberry32(p.seed + seed * 3 + 3), true),\r\n      };\r\n      self.postMessage(\r\n        {\r\n          type: 'seed',\r\n          id,\r\n          seed,\r\n          nSeeds: n,\r\n          traj: {\r\n            DGM: Array.from(traj.DGM),\r\n            HGM: Array.from(traj.HGM),\r\n            MGM: Array.from(traj.MGM),\r\n          },\r\n        },\r\n        []\r\n      );\r\n    }\r\n    if (id === runId) self.postMessage({ type: 'done', id, nSeeds: n });\r\n  };\r\n})();\r\n"], { type: 'application/javascript' });
-    worker = new Worker(URL.createObjectURL(blob));
+    worker = new Worker('assets/sim-panel-worker.js');
     worker.onmessage = (ev) => {
       const msg = ev.data || {};
       if (msg.id !== runToken) return;
@@ -385,13 +415,14 @@
     return worker;
   }
 
-  function startRun(d0, rho) {
+  function startRun(d0, rho, opts = {}) {
     stopPlayback();
     clearHold();
     runToken += 1;
     state = emptyState(d0, rho);
     state.play = reduceMotion ? 1 : 0.06;
-    syncParams();
+    if (opts.fromAuto) setControls(d0, rho);
+    else syncLabels();
     draw();
     ensureWorker().postMessage({
       type: 'run',
@@ -404,31 +435,52 @@
     });
   }
 
+  function readControls() {
+    const d0 = D0_STEPS[parseInt(d0Range.value, 10)] ?? 20;
+    const rho = RHO_STEPS[parseInt(rhoRange.value, 10)] ?? 2.0;
+    return { d0, rho };
+  }
+
+  let debounce = 0;
+  function onControl() {
+    userPinned = true;
+    clearHold();
+    const { d0, rho } = readControls();
+    if (d0Val) d0Val.textContent = String(d0);
+    if (rhoVal) rhoVal.textContent = rho.toFixed(1);
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      startRun(d0, rho);
+      // Resume auto-cycle after the user-triggered run finishes + hold
+      userPinned = false;
+    }, 120);
+  }
+
+  d0Range.addEventListener('input', onControl);
+  rhoRange.addEventListener('input', onControl);
   window.addEventListener('resize', () => {
     clearTimeout(resizeCanvases._t);
     resizeCanvases._t = setTimeout(resizeCanvases, 80);
   });
 
-  syncParams();
+  d0Range.max = String(D0_STEPS.length - 1);
+  rhoRange.max = String(RHO_STEPS.length - 1);
+  d0Range.value = String(D0_STEPS.indexOf(20));
+  rhoRange.value = String(RHO_STEPS.indexOf(2.0));
+  state = emptyState(20, 2.0);
+  syncLabels();
   resizeCanvases();
-
-  let started = false;
-  function boot() {
-    if (started) return;
-    started = true;
-    startRun(20, 2.0);
-  }
 
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
         if (!e.isIntersecting) return;
         io.disconnect();
-        boot();
+        const { d0, rho } = readControls();
+        startRun(d0, rho);
       });
     },
-    { threshold: 0.08 }
+    { threshold: 0.18 }
   );
   io.observe(root);
-  setTimeout(boot, 1200);
 })();

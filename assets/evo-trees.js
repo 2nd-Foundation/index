@@ -166,16 +166,14 @@
     const hudEvals = document.getElementById("hudEvals");
     const hudNodes = document.getElementById("hudNodes");
 
-    let data = window.MGM_TREE_DATA || null;
-    if (!data) {
-      try {
-        const res = await fetch("assets/tree_mgm_web.json");
-        if (!res.ok) throw new Error("load failed");
-        data = await res.json();
-      } catch (err) {
-        console.error(err);
-        return;
-      }
+    let data;
+    try {
+      const res = await fetch("assets/tree_mgm_web.json");
+      if (!res.ok) throw new Error("load failed");
+      data = await res.json();
+    } catch (err) {
+      console.error(err);
+      return;
     }
 
     const meta = new Map(data.nodes.map((n) => [n.id, n]));
