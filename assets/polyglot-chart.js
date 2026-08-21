@@ -351,12 +351,24 @@
     });
   });
 
+  const panel = chart.closest('section') || chart;
+
+  const restartAnim = () => {
+    chart.classList.remove('ready');
+    // Force style recalc so CSS animations can restart from frame 0.
+    void chart.offsetWidth;
+    chart.classList.add('ready');
+  };
+
+  const resetAnim = () => {
+    chart.classList.remove('ready');
+  };
+
   const pio = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
-      if (!e.isIntersecting) return;
-      chart.classList.add('ready');
-      pio.unobserve(chart);
+      if (e.isIntersecting) restartAnim();
+      else resetAnim();
     });
-  }, { threshold: 0.25 });
-  pio.observe(chart);
+  }, { threshold: 0.35 });
+  pio.observe(panel);
 })();
