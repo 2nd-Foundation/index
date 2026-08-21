@@ -471,16 +471,24 @@
   syncLabels();
   resizeCanvases();
 
+  const panel = root.closest('section') || root;
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const { d0, rho } = readControls();
-        startRun(d0, rho);
+        if (e.isIntersecting) {
+          const { d0, rho } = readControls();
+          startRun(d0, rho);
+        } else {
+          stopPlayback();
+          clearHold();
+          runToken += 1;
+          const { d0, rho } = readControls();
+          state = emptyState(d0, rho);
+          draw();
+        }
       });
     },
-    { threshold: 0.18 }
+    { threshold: 0.25 }
   );
-  io.observe(root);
+  io.observe(panel);
 })();

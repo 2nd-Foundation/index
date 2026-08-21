@@ -631,6 +631,7 @@
     }
 
     function tick(ts) {
+      if (!running) return;
       if (!cycleStart) resetCycle(ts);
 
       if (phase === "play") {
@@ -661,25 +662,33 @@
       physics();
       updateCamera();
       draw(ts);
-      requestAnimationFrame(tick);
+      rafId = requestAnimationFrame(tick);
     }
 
     let running = false;
+    let rafId = 0;
     const start = () => {
       if (running) return;
       running = true;
-      requestAnimationFrame(tick);
+      resetCycle(performance.now());
+      rafId = requestAnimationFrame(tick);
     };
+    const stop = () => {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+    };
+    const panel = stage.closest("section") || stage;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
           if (en.isIntersecting) start();
+          else stop();
         });
       },
-      { threshold: 0.08, rootMargin: "80px 0px" }
+      { threshold: 0.25 }
     );
-    io.observe(stage);
-    if (stage.getBoundingClientRect().top < window.innerHeight * 1.1) start();
+    io.observe(panel);
   }
 
   if (document.readyState === "loading") {

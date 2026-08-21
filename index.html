@@ -671,7 +671,7 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
       <div class="mem-card">
         <div class="id">R1 · Memory-R1 · ACL 2026</div>
         <h3>从会用记忆到会管记忆</h3>
-        <div class="sub">用结果奖励学习记忆管理与记忆使用 · arXiv:2508.19828</div>
+        <div class="sub">用结果奖励学习记忆管理与记忆使用</div>
         <p>
           <b>两个 RL Agent 协同。</b>
           Memory Manager 学会 ADD / UPDATE / DELETE / NOOP；
@@ -686,9 +686,9 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
         <div class="facts"><span>152 QA pairs</span><span>3 benchmarks</span><span>3B–14B</span></div>
       </div>
       <div class="mem-card">
-        <div class="id">R2 · Memory-R2 · arXiv 2026</div>
+        <div class="id">R2 · Memory-R2</div>
         <h3>长时程记忆的公平归因</h3>
-        <div class="sub">LoGo-GRPO 双分支 · arXiv:2605.21768</div>
+        <div class="sub">LoGo-GRPO 双分支</div>
         <p>
           <b>全局轨迹 + 同状态局部重采样。</b>
           固定中间记忆状态，只比较当前记忆操作，让跨 session 信用分配更公平。
@@ -743,7 +743,7 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
         <div class="polyglot-legend">
           <span><i class="swatch open"></i>开源</span>
           <span><i class="swatch closed"></i>闭源</span>
-          <span><i class="swatch ours"></i>自我改进</span>
+          <span><i class="swatch ours"></i>RSI</span>
         </div>
       </div>
 
@@ -864,7 +864,10 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
   onScroll();
 
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+    entries.forEach((e) => {
+      if (e.isIntersecting) e.target.classList.add('in');
+      else e.target.classList.remove('in');
+    });
   }, {threshold: 0.12, rootMargin: '0px 0px -40px 0px'});
   document.querySelectorAll('.rv, .rv-st').forEach(el => io.observe(el));
 
@@ -885,13 +888,22 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
     if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(-1); }
   });
 
+  const resetCount = (el) => {
+    el._cntToken = (el._cntToken || 0) + 1;
+    const from = el.dataset.from != null ? parseFloat(el.dataset.from) : 0;
+    const dec = parseInt(el.dataset.dec || '0', 10);
+    el.textContent = from.toFixed(dec);
+  };
+
   const animateCount = (el) => {
+    const token = (el._cntToken = (el._cntToken || 0) + 1);
     const to = parseFloat(el.dataset.to);
     const from = el.dataset.from != null ? parseFloat(el.dataset.from) : 0;
     const dec = parseInt(el.dataset.dec || '0', 10);
     const dur = 1100;
     const t0 = performance.now();
     const tick = (t) => {
+      if (el._cntToken !== token) return;
       const p = Math.min(1, (t - t0) / dur);
       const eased = 1 - Math.pow(1 - p, 3);
       el.textContent = (from + (to - from) * eased).toFixed(dec);
@@ -900,10 +912,10 @@ table.results .sup{font-size:10px;vertical-align:super;line-height:0;color:var(-
     requestAnimationFrame(tick);
   };
   const cio = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      e.target.querySelectorAll('.cnt').forEach(animateCount);
-      cio.unobserve(e.target);
+    entries.forEach((e) => {
+      const counts = e.target.querySelectorAll('.cnt');
+      if (e.isIntersecting) counts.forEach(animateCount);
+      else counts.forEach(resetCount);
     });
   }, {threshold: 0.35});
   document.querySelectorAll('.hook-stats').forEach(el => cio.observe(el));

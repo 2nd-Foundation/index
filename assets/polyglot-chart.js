@@ -330,6 +330,10 @@
     s969.textContent = '96.9';
   }
 
+  // Last green score delay is t+0.55 with ~1.1s fade; hold 15s after that, then replay.
+  const ANIM_END_MS = Math.ceil((t + 1.65) * 1000);
+  const HOLD_MS = 15000;
+
   const showTip = (node, clientX, clientY) => {
     tip.innerHTML = `<b>${node.dataset.name}</b><br>${node.dataset.score}% · ${node.dataset.size}<br>${node.dataset.kind}`;
     const rect = chart.getBoundingClientRect();
@@ -352,22 +356,48 @@
   });
 
   const panel = chart.closest('section') || chart;
+  let visible = false;
+  let loopTimer = 0;
+
+  const clearLoop = () => {
+    if (loopTimer) {
+      clearTimeout(loopTimer);
+      loopTimer = 0;
+    }
+  };
+
+  const scheduleLoop = () => {
+    clearLoop();
+    if (!visible) return;
+    loopTimer = setTimeout(() => {
+      loopTimer = 0;
+      if (!visible) return;
+      restartAnim();
+    }, ANIM_END_MS + HOLD_MS);
+  };
 
   const restartAnim = () => {
     chart.classList.remove('ready');
     // Force style recalc so CSS animations can restart from frame 0.
     void chart.offsetWidth;
     chart.classList.add('ready');
+    scheduleLoop();
   };
 
   const resetAnim = () => {
+    visible = false;
+    clearLoop();
     chart.classList.remove('ready');
   };
 
   const pio = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
-      if (e.isIntersecting) restartAnim();
-      else resetAnim();
+      if (e.isIntersecting) {
+        visible = true;
+        restartAnim();
+      } else {
+        resetAnim();
+      }
     });
   }, { threshold: 0.35 });
   pio.observe(panel);
