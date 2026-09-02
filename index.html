@@ -1158,7 +1158,8 @@
   .editorial-visual--bust-stair .bust-step--3{bottom:52%;left:36%;width:38%;z-index:5;opacity:.94}
   .editorial-cap{margin-top:1.6vh;font-family:var(--mono);font-size:14px;color:var(--text-helper);line-height:1.5;max-width:none}
   .slide.editorial-bench-slide .canvas-card{position:relative;overflow:hidden}
-  .slide.editorial-bench-slide .editorial-stage--bench{grid-template-columns:1fr;width:50%;max-width:50%}
+  .slide.editorial-bench-slide .editorial-stage--bench{grid-template-columns:1fr;width:50%;max-width:50%;align-self:center;padding-bottom:2vh}
+  .slide.editorial-bench-slide .bench-viz--bg{top:3vh;height:min(78vh,calc(100vh - 8vh - var(--nav-safe-bottom,8vh)))}
   .slide.editorial-bench-slide .editorial-copy{width:100%;max-width:100%}
   .slide.editorial-bench-slide .editorial-copy .t-body{max-width:min(52ch,100%)}
   .slide.editorial-bench-slide .canvas-card>.bench-viz--bg{z-index:1}
@@ -1180,7 +1181,7 @@
   .bench-swatch.direct{border:1.5px solid rgba(28,26,24,.35);border-radius:50%;background:transparent;width:9px;height:9px}
   .bench-swatch.prior{background:rgba(28,26,24,.22);border-radius:50%;width:8px;height:8px}
   .bench-swatch.ours{background:var(--accent);border-radius:50%;width:8px;height:8px;margin-left:.6em}
-  .bench-slope-viz{gap:0;justify-content:flex-end}
+  .bench-slope-viz{gap:0;justify-content:flex-start;padding-top:.5vh}
   .bench-slope-viz .bench-slope-grid{flex:0 1 auto;align-items:end}
   .bench-slope-viz .bench-viz-head{padding-top:.35vh;padding-bottom:0;margin-top:0}
   .bench-slope-viz .bench-viz-foot{text-align:right;margin-top:.25vh;padding:0}
@@ -1193,12 +1194,12 @@
   .slope-model-tag{font-family:var(--mono);font-size:max(8px,.52vw);letter-spacing:.1em;color:var(--text-helper);opacity:.62;text-align:right;flex:0 0 auto;margin-top:.05vh;padding-right:.15em;line-height:1.1}
   .slope-svg{flex:0 0 auto;width:100%;height:auto;display:block;overflow:visible}
   .slope-rail{stroke:rgba(28,26,24,.07);stroke-width:.25}
-  .slope-line{stroke:rgba(28,26,24,.1);stroke-width:.45;fill:none}
-  .slope-line.ours{stroke:rgba(28,26,24,.16);stroke-width:.5}
-  .slope-ref{stroke:var(--accent);stroke-width:.45;stroke-dasharray:3 3;opacity:.42}
-  .slope-dot.direct{fill:var(--paper);stroke:rgba(28,26,24,.28);stroke-width:.9}
-  .slope-dot.right{fill:rgba(28,26,24,.22)}
-  .slope-dot.right.ours{fill:var(--accent);stroke:none;opacity:.75}
+  .slope-line{stroke:rgba(28,26,24,.24);stroke-width:.55;fill:none}
+  .slope-line.ours{stroke:rgba(28,26,24,.38);stroke-width:.65}
+  .slope-ref{stroke:var(--accent);stroke-width:.5;stroke-dasharray:3 3;opacity:.55}
+  .slope-dot.direct{fill:none;stroke:rgba(28,26,24,.5);stroke-width:1.1}
+  .slope-dot.right{fill:rgba(28,26,24,.32)}
+  .slope-dot.right.ours{fill:var(--accent);stroke:none;opacity:1}
   .bench-viz-foot{flex:0 0 auto;margin-top:.6vh;font-family:var(--mono);font-size:max(12px,.72vw);letter-spacing:.04em;color:var(--text-helper);line-height:1.5;text-align:center;opacity:.72;padding:0 1vw}
   .bench-wins{font-weight:700;color:var(--plinth);font-size:15px;letter-spacing:.04em;opacity:1}
   .slide.cover-swarm{position:relative;padding:0!important;background:var(--ink);overflow:hidden}
@@ -1568,7 +1569,6 @@
           <img class="bust-step bust-step--2" src="images/05-artifact-bust.png" alt="">
           <img class="bust-step bust-step--3" src="images/05-artifact-bust.png" alt="">
         </figure>
-        <p class="editorial-cap" style="margin-top:1.6vh;text-align:right">象征物 石膏哲人阶梯 思想与记忆逐层沉积的古典隐喻</p>
       </div>
     </div>
   </div>
@@ -1674,7 +1674,6 @@
         <div class="t-meta" style="margin-bottom:1.6vh">GOVERNMENT SERVICES</div>
         <p class="lead-xl">办一件事，<br>是<span class="em">多方智能的接力</span>。</p>
         <p class="t-body" style="margin-top:2.4vh;font-weight:300;color:var(--text-secondary)">一项事项横跨多个部门与角色。Agent 分工承接、交接留痕，复杂政务在一次次流转中连贯成片。</p>
-        <p class="editorial-cap">象征物 群飞铭文石板 多方往来沉淀为规则的古典隐喻</p>
       </div>
       <div data-anim="visual" class="editorial-visual">
         <div class="editorial-plinth"></div>
@@ -2805,6 +2804,7 @@ if(motion){
         el.style.opacity='1';
         el.style.transform='none';
       });
+    revealBenchStatic(slide.querySelector('.bench-viz'));
   }
 
   function playSlide(i){
@@ -2865,37 +2865,32 @@ if(motion){
     }
     fadeUp(slide.querySelector('[data-anim="lead"]'),12,.62,.58);
   }
+  function revealBenchStatic(viz){
+    if(!viz) return;
+    viz.style.opacity='1';
+    viz.style.transform='none';
+    viz.querySelectorAll('.slope-panel,.slope-dot,.slope-ref,.bench-viz-foot,.bench-viz-head').forEach(el=>{
+      el.style.opacity='1';
+      el.style.transform='none';
+    });
+    viz.querySelectorAll('.slope-line').forEach(line=>{
+      line.style.strokeDasharray='none';
+      line.style.strokeDashoffset='0';
+    });
+  }
   function rBenchViz(viz,delay){
     if(!viz) return;
-    const d=delay??.5;
+    revealBenchStatic(viz);
+    if(window.__lowPowerMode) return;
+    const d=delay??.35;
     viz.style.opacity='0';
-    viz.style.transform='translateY(10px)';
-    animate(viz,{opacity:[0,1],y:[10,0]},{duration:.5,delay:d,easing:EASE_ENTRY_EXP});
-    [...viz.querySelectorAll('.slope-panel')].forEach((panel,i)=>{
-      panel.style.opacity='0';
-      panel.style.transform='translateY(8px)';
-      animate(panel,{opacity:[0,1],y:[8,0]},{duration:.42,delay:d+.1+i*.1,easing:EASE_PROD});
-    });
-    [...viz.querySelectorAll('.slope-line')].forEach((line,i)=>{
-      const len=typeof line.getTotalLength==='function'?line.getTotalLength():80;
-      line.style.strokeDasharray=String(len);
-      line.style.strokeDashoffset=String(len);
-      animate(line,{strokeDashoffset:[len,0]},{duration:.55,delay:d+.32+i*.025,easing:EASE_ENTRY_EXP});
-    });
-    [...viz.querySelectorAll('.slope-dot,.slope-ref')].forEach((el,i)=>{
-      el.style.opacity='0';
-      animate(el,{opacity:[0,1]},{duration:.28,delay:d+.55+i*.012,easing:EASE_PROD});
-    });
-    const foot=viz.querySelector('.bench-viz-foot');
-    if(foot){
-      foot.style.opacity='0';
-      animate(foot,{opacity:[0,1]},{duration:.4,delay:d+.95,easing:EASE_PROD});
-    }
+    viz.style.transform='translateY(8px)';
+    animate(viz,{opacity:[0,1],y:[8,0]},{duration:.45,delay:d,easing:EASE_ENTRY_EXP});
   }
   function rEditorialStage(slide){
     const chrome=slide.querySelector('.chrome-min');
     if(chrome){chrome.style.opacity='0';animate(chrome,{opacity:[0,1]},{duration:.28,easing:EASE_PROD})}
-    const copyKids=slide.classList.contains('editorial-bench-slide')?'.t-meta,.lead-xl,.t-body':'.t-meta,.lead-xl,.t-body,.editorial-cap';
+    const copyKids=slide.classList.contains('editorial-bench-slide')?'.t-meta,.lead-xl,.t-body':'.t-meta,.lead-xl,.t-body';
     animKids(slide.querySelector('[data-anim="copy"]'),copyKids,.2,.11);
     if(slide.classList.contains('editorial-bench-slide')){
       rBenchViz(slide.querySelector('.bench-viz'),.35);
