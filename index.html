@@ -1301,9 +1301,7 @@
 <div id="deck">
 
 <!-- ============================================================
-     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
-     页面骨架参考 references/layouts-swiss.md
-     主题色配置参考 references/themes-swiss.md
+     SLIDES · 直接在此编辑所有 <section class="slide ..."> 页面
      ============================================================ -->
 
 <section class="slide dark cover-swarm" data-layout="SWISS-COVER-ASCII" data-animate="hero">
@@ -1995,17 +1993,30 @@ slides.forEach((s,i)=>{
 
 function setSlideChrome(i){
   nav.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',j===i));
+  slides.forEach((s,j)=>s.classList.toggle('is-current',j===i));
   const el=slides[i];
   const isDark=el.classList.contains('dark')||el.classList.contains('accent');
   document.body.classList.toggle('dark-bg',isDark);
   darkMode=isDark;
 }
 
+function resetSlideForAnim(slide){
+  if(!slide||window.__lowPowerMode)return;
+  try{
+    for(const a of document.getAnimations()){
+      const t=a.effect?.target;
+      if(t&&slide.contains(t))a.cancel();
+    }
+  }catch(_){}
+  slide.querySelectorAll('[data-anim]').forEach(el=>{
+    el.style.opacity='';
+    el.style.transform='';
+  });
+}
+
 function playSlideAnim(i){
   clearTimeout(window.__slideAnimTO);
-  window.__slideAnimTO=setTimeout(()=>{
-    if(window.__playSlide)window.__playSlide(i);
-  },420);
+  if(window.__playSlide) requestAnimationFrame(()=>window.__playSlide(i));
 }
 
 function go(n){
@@ -2013,13 +2024,16 @@ function go(n){
   const next=Math.max(0,Math.min(total-1,n));
   if(next===idx)return;
   lock=true;
+  const target=slides[next];
+  resetSlideForAnim(target);
   idx=next;
   window.__currentSlideIndex=idx;
   window.__pendingSlide=idx;
   setSlideChrome(idx);
-  slides[idx].scrollIntoView({behavior:'smooth',block:'start'});
-  const unlock=()=>{playSlideAnim(idx);lock=false};
-  setTimeout(unlock,720);
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+  playSlideAnim(idx);
+  clearTimeout(window.__slideLockTO);
+  window.__slideLockTO=setTimeout(()=>{lock=false},480);
 }
 
 addEventListener('keydown',e=>{
@@ -2074,6 +2088,7 @@ deck.addEventListener('scroll',()=>{
       if(d<bestDist){bestDist=d;best=i;}
     });
     if(best!==idx){
+      resetSlideForAnim(slides[best]);
       idx=best;
       window.__currentSlideIndex=idx;
       window.__pendingSlide=idx;
@@ -2964,31 +2979,18 @@ if(motion){
     if(!slide) return;
     lastIdx=i;
     if(window.__lowPowerMode){revealStatic(slide);return;}
-    try{
-      for(const a of document.getAnimations()){
-        const t=a.effect?.target;
-        if(t&&slide.contains(t)) a.cancel();
-      }
-    }catch(_){}
     resetAnims(slide);
-    slide.querySelectorAll('[data-anim]').forEach(el=>{
-      el.style.opacity='1';
-      el.style.transform='none';
-    });
     const recipe=slide.dataset.animate;
     const fn=RECIPES[recipe];
-    const run=()=>{
-      if(fn){fn(slide,[...slide.querySelectorAll('[data-anim]')]);return;}
-      const all=[...slide.querySelectorAll('[data-anim]')];
-      all.forEach(el=>{
-        el.style.opacity='0';
-        el.style.transform='translateY(12px)';
-      });
-      if(all.length){
-        animate(all,{opacity:[0,1],y:[12,0]},{duration:.6,delay:j=>j*.08,easing:EASE_ENTRY_EXP});
-      }
-    };
-    requestAnimationFrame(()=>requestAnimationFrame(run));
+    if(fn){fn(slide,[...slide.querySelectorAll('[data-anim]')]);return;}
+    const all=[...slide.querySelectorAll('[data-anim]')];
+    all.forEach(el=>{
+      el.style.opacity='0';
+      el.style.transform='translateY(12px)';
+    });
+    if(all.length){
+      animate(all,{opacity:[0,1],y:[12,0]},{duration:.6,delay:j=>j*.08,easing:EASE_ENTRY_EXP});
+    }
   }
 
 
@@ -3003,7 +3005,7 @@ if(motion){
 <script>
 /* Bird swarm — screen-space boids, mouse reactive, seed 42 */
 (function(){
-  /* ── 可调超参（改这里后运行 node build-deck.mjs）── */
+  /* ── 可调超参 ── */
   const SWARM_CFG={
     seed:42,
     countCover:112, countClosing:88,
