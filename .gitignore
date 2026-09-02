@@ -1,1 +1,28 @@
+# Backup & scratch
+index.html.bak*
+*.bak
+*.bak2
+_shots/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & local agent tooling
+.claude/
+.cursor/
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets
+.env
+.env.*
+
+# Local-only exports
 *.pdf

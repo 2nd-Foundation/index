@@ -28,7 +28,7 @@
   const DEFAULT_CFG = {
     seed: 42,
     /** Wall-clock length of one full archive replay (ms). */
-    totalMs: 28000,
+    totalMs: 22000,
     /** Pause on the finished tree before fade (ms). */
     holdMs: 3200,
     /** Fade-out duration before looping (ms). */
@@ -98,22 +98,22 @@
   const OPS = {
     clonal: {
       name: "clonal",
-      color: "#A8B5AD",
+      color: "#A8A29E",
       label: "Clonal Mutation",
     },
     reaction: {
       name: "reaction",
-      color: "#E0B84A",
+      color: "#B84435",
       label: "Reaction-norm Mutation",
     },
     hybridize: {
       name: "hybridize",
-      color: "#3DA66A",
+      color: "#5A9A6E",
       label: "Cross-lineage Hybridization",
     },
   };
-  /** Utility fill stops — tuned for dark canvas. */
-  const ACC_STOPS = ["#E07A76", "#F0B878", "#F0D56A", "#8FCF7A"];
+  /** Utility fill stops — tuned for light editorial paper. */
+  const ACC_STOPS = ["#E8B4AE", "#E0C48A", "#B8D4A8", "#6AAF82"];
 
   const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -156,25 +156,12 @@
     return `rgba(${r},${g},${b},${a})`;
   }
 
-  async function boot() {
-    const stage = document.getElementById("mgmStage");
-    const cv = document.getElementById("mgmCanvas");
-    // Observe the stage itself (not a section id) so the demo still boots
-    // if the canvas is moved in the page (e.g. from #trees into #archive).
-    if (!stage || !cv) return;
+  async function initStage(stage, data) {
+    const cv = stage.querySelector(".mgm-evo-canvas");
+    if (!cv) return;
 
-    const hudEvals = document.getElementById("hudEvals");
-    const hudNodes = document.getElementById("hudNodes");
-
-    let data;
-    try {
-      const res = await fetch("assets/tree_mgm_web.json");
-      if (!res.ok) throw new Error("load failed");
-      data = await res.json();
-    } catch (err) {
-      console.error(err);
-      return;
-    }
+    const hudEvals = null;
+    const hudNodes = null;
 
     const meta = new Map(data.nodes.map((n) => [n.id, n]));
     const frames = data.frames;
@@ -566,12 +553,12 @@
         const rr = Math.max(n.r * age, 0.5);
 
         if (n.root) {
-          ctx.fillStyle = "#9BB0A4";
+          ctx.fillStyle = "#8B7D6B";
           ctx.globalAlpha = 0.95 * Math.max(fade, 0);
           ctx.beginPath();
           ctx.arc(n.x, n.y, rr, 0, 7);
           ctx.fill();
-          ctx.strokeStyle = "rgba(232,238,234,.5)";
+          ctx.strokeStyle = "rgba(28,26,24,.18)";
           ctx.lineWidth = 1.4 * invS;
           ctx.beginPath();
           ctx.arc(n.x, n.y, rr + 3, 0, 7);
@@ -617,7 +604,7 @@
           if (alpha > 0.02) {
             const ring = rr + 5 + hop * 0.15;
             ctx.globalAlpha = alpha;
-            ctx.font = `${11 * invS}px "Overpass",system-ui,sans-serif`;
+            ctx.font = `${11 * invS}px "Alibaba PuHuiTi",system-ui,sans-serif`;
             ctx.fillStyle = n.op.color;
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
@@ -631,7 +618,6 @@
     }
 
     function tick(ts) {
-      if (!running) return;
       if (!cycleStart) resetCycle(ts);
 
       if (phase === "play") {
@@ -662,33 +648,40 @@
       physics();
       updateCamera();
       draw(ts);
-      rafId = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     }
 
     let running = false;
-    let rafId = 0;
     const start = () => {
       if (running) return;
       running = true;
-      resetCycle(performance.now());
-      rafId = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     };
-    const stop = () => {
-      running = false;
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = 0;
-    };
-    const panel = stage.closest("section") || stage;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
           if (en.isIntersecting) start();
-          else stop();
         });
       },
-      { threshold: 0.25 }
+      { threshold: 0.08, rootMargin: "80px 0px" }
     );
-    io.observe(panel);
+    io.observe(stage);
+    if (stage.getBoundingClientRect().top < window.innerHeight * 1.1) start();
+  }
+
+  async function boot() {
+    const stages = [...document.querySelectorAll(".mgm-evo-stage")];
+    if (!stages.length) return;
+    let data;
+    try {
+      const res = await fetch("assets/tree_mgm_web.json");
+      if (!res.ok) throw new Error("load failed");
+      data = await res.json();
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+    for (const stage of stages) initStage(stage, data);
   }
 
   if (document.readyState === "loading") {
