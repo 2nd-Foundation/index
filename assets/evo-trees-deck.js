@@ -674,7 +674,7 @@
     if (!stages.length) return;
     let data;
     try {
-      const res = await fetch("assets/tree_mgm_web.json");
+      const res = await fetch(new URL("assets/tree_mgm_web.json", document.baseURI).href);
       if (!res.ok) throw new Error("load failed");
       data = await res.json();
     } catch (err) {

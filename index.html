@@ -2,6 +2,24 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script>
+(function(){
+  function siteBasePath(){
+    var p=location.pathname;
+    if(/\.html?$/i.test(p)) return p.slice(0,p.lastIndexOf('/')+1);
+    if(p&&!p.endsWith('/')) return p+'/';
+    return p||'/';
+  }
+  var basePath=siteBasePath();
+  var base=document.createElement('base');
+  base.href=basePath;
+  document.head.appendChild(base);
+  window.__siteBasePath=basePath;
+  window.__assetUrl=function(rel){
+    return new URL(rel.replace(/^\.\//,''),location.origin+basePath).href;
+  };
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
 <title>RSI for Agentic Swarm Intelligence · 亿万智能体系统的自我规则涌现 · Second Foundation</title>
@@ -1120,7 +1138,7 @@
   @font-face{font-family:'Alibaba PuHuiTi';src:url('https://puhuiti.oss-cn-hangzhou.aliyuncs.com/AlibabaPuHuiTi-3/85-bold/AlibabaPuHuiTi-3-85-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
   @font-face{font-family:'Alibaba PuHuiTi';src:url('https://puhuiti.oss-cn-hangzhou.aliyuncs.com/AlibabaPuHuiTi-3/95-extra-bold/AlibabaPuHuiTi-3-95-ExtraBold.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}
   :root{--plinth:#B84435;--plinth-rgb:184,68,53}
-  html,body,button,input,textarea,select,*::before,*::after{font-family:'Alibaba PuHuiTi'!important}
+  html,body,button,input,textarea,select,*::before,*::after{font-family:'Alibaba PuHuiTi',system-ui,-apple-system,'Segoe UI',sans-serif!important}
   em,i,cite,var,.em{font-style:normal!important}
 
 
@@ -2111,15 +2129,23 @@ window.__pendingSlide=idx;
 
 <!-- Motion One 动效引擎 (与原模板一致) -->
 <script type="module">
+function revealAllAnim(){
+  document.querySelectorAll('[data-anim]').forEach(el=>{
+    el.style.opacity='1';
+    el.style.transform='none';
+  });
+}
+
 let motion;
+const motionLocal=window.__assetUrl('assets/motion.min.js');
 try {
-  motion = await import('./assets/motion.min.js');
+  motion = await import(motionLocal);
 } catch(e1) {
   try {
     motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
   } catch(e2) {
     console.warn('[motion] local + CDN both failed, disabling animations', e1, e2);
-    document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+    revealAllAnim();
   }
 }
 
@@ -2996,7 +3022,21 @@ if(motion){
 
   window.__playSlide = playSlideDeck;
 
-  playSlideDeck(window.__pendingSlide ?? window.__currentSlideIndex ?? 0);
+  try{
+    playSlideDeck(window.__pendingSlide ?? window.__currentSlideIndex ?? 0);
+  }catch(err){
+    console.error('[motion] playSlide failed, revealing static content',err);
+    revealAllAnim();
+  }
+  setTimeout(()=>{
+    const slide=slides[window.__currentSlideIndex??0];
+    if(!slide)return;
+    const hidden=[...slide.querySelectorAll('[data-anim]')].some(el=>{
+      const o=getComputedStyle(el).opacity;
+      return o==='0'||Number(o)<.05;
+    });
+    if(hidden) revealAllAnim();
+  },2500);
 }
 </script>
 
