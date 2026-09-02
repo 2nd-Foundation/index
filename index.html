@@ -573,18 +573,10 @@
   .card-accent{background:var(--accent);border:0;color:var(--accent-on)}
   .card-accent .t-meta,.card-accent .t-cat{color:var(--accent-on)}
 
-  /* ============ 动效 (与原模板一致) ============ */
+  /* ============ 动效 ============ */
+  /* 内容默认可见; 入场动画由 JS recipe 在同一帧内设置初始态, 避免全局 opacity:0 导致未播动画的页面空白 */
   [data-anim]{opacity:1}
-  body.motion-ready [data-anim]{opacity:0}
-  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
-  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
-  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
   body.low-power #deck{scroll-behavior:auto!important}
-  body.low-power *,
-  body.low-power *::before,
-  body.low-power *::after{animation:none!important;transition:none!important}
-  body.low-power.motion-ready [data-anim],
-  body.low-power [data-anim]{opacity:1!important;transform:none!important}
 
   /* ============================================================
      ↓↓↓ V2 EXTENSIONS · Canvas Mode + 参考图新类
@@ -2151,7 +2143,6 @@ try {
 
 if(motion){
   const { animate } = motion;
-  document.body.classList.add('motion-ready');
 
   /* ============================================================
      IBM Carbon Motion · 每个 recipe 服务一种表达
@@ -3006,6 +2997,11 @@ if(motion){
     lastIdx=i;
     if(window.__lowPowerMode){revealStatic(slide);return;}
     resetAnims(slide);
+    /* [data-anim] 多为容器标记; recipe 动画子元素前须先让容器可见 */
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='1';
+      el.style.transform='none';
+    });
     const recipe=slide.dataset.animate;
     const fn=RECIPES[recipe];
     if(fn){fn(slide,[...slide.querySelectorAll('[data-anim]')]);return;}
@@ -3022,21 +3018,24 @@ if(motion){
 
   window.__playSlide = playSlideDeck;
 
+  const deckRoot=document.getElementById('deck');
+  if(deckRoot){
+    const slideIO=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting||entry.intersectionRatio<.42)return;
+        const i=slides.indexOf(entry.target);
+        if(i>=0) playSlideDeck(i);
+      });
+    },{root:deckRoot,threshold:[.42,.6]});
+    slides.forEach(s=>slideIO.observe(s));
+  }
+
   try{
     playSlideDeck(window.__pendingSlide ?? window.__currentSlideIndex ?? 0);
   }catch(err){
     console.error('[motion] playSlide failed, revealing static content',err);
     revealAllAnim();
   }
-  setTimeout(()=>{
-    const slide=slides[window.__currentSlideIndex??0];
-    if(!slide)return;
-    const hidden=[...slide.querySelectorAll('[data-anim]')].some(el=>{
-      const o=getComputedStyle(el).opacity;
-      return o==='0'||Number(o)<.05;
-    });
-    if(hidden) revealAllAnim();
-  },2500);
 }
 </script>
 
